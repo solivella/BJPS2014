@@ -1,0 +1,35 @@
+model{
+  for(i in 1:N){
+    y[i] ~ dnorm(y.hat[i],tau.y)
+    y.hat[i] <- alpha[origin[i]] + theta[origin[i]]*man.change[i]  + X[i,] %*% betavec
+    e.y[i] <- y[i] - y.hat[i]
+  }
+  tau.y <- pow(sigma.y,-2)
+  sigma.y ~ dunif(0,100)
+  
+  for(j in 1:J){
+    alpha[j] <- xi.a * B.raw[j,1]
+    theta[j]  <- xi.t * B.raw[j,2]
+    B.raw[j,1:2] ~ dmnorm (B.raw.hat[j,], Tau.B.raw)
+    B.raw.hat[j,1] <- mu.a.raw
+    B.raw.hat[j,2] <- mu.t.raw
+  }  
+  
+  mu.a <- xi.a*mu.a.raw
+  mu.t <- xi.t*mu.t.raw 
+  mu.a.raw ~ dnorm (0, .0001) 
+  mu.t.raw ~ dnorm (0, .0001)
+  xi.a ~ dunif (0, 100) 
+  xi.t ~ dunif (0, 100)
+  
+  Tau.B.raw ~ dwish (W, df)
+  df <- 3
+  Sigma.B.raw <- inverse(Tau.B.raw) 
+  sigma.a <- xi.a*sqrt(Sigma.B.raw[1,1]) 
+  sigma.t <- xi.t*sqrt(Sigma.B.raw[2,2])
+  #rho <- Sigma.B.raw[1,2]/sqrt(Sigma.B.raw[1,1]*Sigma.B.raw[2,2])
+  
+  for (k in 1:K){
+    betavec[k] ~ dnorm (0, .0001)
+  }
+}
